@@ -45,7 +45,7 @@ if __name__ == "__main__":
     model.save(tensorboard_log + "model")
 
     model = PPO.load(tensorboard_log + "model")
-    env = gym.make('Pendulum-v1', render_mode="human")
+    env = gym.make('CartPoleSwingUp-v0', render_mode="human")
     while True:
         obs, info = env.reset()
         done = truncated = False

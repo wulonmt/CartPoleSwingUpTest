@@ -55,9 +55,11 @@ class CartPoleSwingUpEnv(gym.Env):
        and keep it upright by increasing and reducing the cart's velocity.
     """
 
-    metadata = {"render.modes": ["human", "rgb_array"], "video.frames_per_second": 50}
+    metadata = {"render_modes": ["human", "rgb_array"], "video.frames_per_second": 50}
 
-    def __init__(self):
+    def __init__(self, render_mode = None):
+        super(CartPoleSwingUpEnv, self).__init__()
+        self.render_mode = render_mode
         high = np.array([1.0], dtype=np.float32)
         self.action_space = spaces.Box(low=-high, high=high)
         high = np.array([np.finfo(np.float32).max] * 5, dtype=np.float32)
@@ -174,7 +176,7 @@ class CartPoleSwingUpViewer:
 
     def __init__(self, cart, pole, world_width):
         # pylint:disable=import-outside-toplevel
-        from gymnasium.envs.classic_control import rendering
+        from gym.envs.classic_control import rendering
 
         # pylint:enable=import-outside-toplevel
 
