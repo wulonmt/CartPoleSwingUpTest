@@ -55,7 +55,7 @@ class CartPoleSwingUpEnv(gym.Env):
        and keep it upright by increasing and reducing the cart's velocity.
     """
 
-    metadata = {"render_modes": ["human", "rgb_array"], "video.frames_per_second": 50}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
 
     def __init__(self, render_mode = None):
         super(CartPoleSwingUpEnv, self).__init__()
@@ -162,6 +162,26 @@ class CartPoleSwingUpV0(CartPoleSwingUpEnv):
     @staticmethod
     def _reward_fn(state, action, next_state):
         return np.cos(next_state.theta, dtype=np.float32)
+    
+class CartPoleSwingUpFixInitStateV0(CartPoleSwingUpV0):
+    def __init__(self, render_mode = None):
+        super().__init__(render_mode)
+        self.init_x = 0 # -2.4 ~ 2.4
+        self.init_angle = np.pi # ↑:0, ↓:np.pi, ←:np.pi/2, →:-np.pi/2
+
+    def setInitState(self, x, theta):
+        self.init_x = x
+        self.init_angle = theta
+
+    def reset(self, seed=None, options=None):
+        self.seed(seed)
+        self.state = State(
+            *self.np_random.normal(
+                loc=np.array([self.init_x, 0.0, self.init_angle, 0.0]),
+                scale=np.array([0., 0.2, 0., 0.2]),
+            ).astype(np.float32)
+        )
+        return self._get_obs(self.state), {}
 
 Screen = namedtuple("Screen", "width height")
 

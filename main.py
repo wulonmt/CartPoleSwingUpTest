@@ -19,8 +19,10 @@ if __name__ == "__main__":
     
     n_cpu = 1
     batch_size = 64
+    env_name = 'CartPoleSwingUpFixInitState-v0'
     #trained_env = GrayScale_env
-    trained_env = make_vec_env('CartPoleSwingUp-v0', n_envs=n_cpu, vec_env_cls=SubprocVecEnv, seed = 1)
+    # trained_env = make_vec_env('CartPoleSwingUp-v0', n_envs=n_cpu, vec_env_cls=SubprocVecEnv, seed = 1)
+    trained_env = make_vec_env(env_name, n_envs=n_cpu, vec_env_cls=SubprocVecEnv, seed = 1)
     tensorboard_log = "./"
 
     #trained_env = make_vec_env(GrayScale_env, n_envs=n_cpu,)
@@ -35,8 +37,8 @@ if __name__ == "__main__":
                 gamma=0.8,
                 verbose=1,
                 target_kl=0.2,
-                ent_coef=0.03,
-                vf_coef=0.8,
+                ent_coef=0.,
+                vf_coef=1.5,
                 tensorboard_log=tensorboard_log,)
     time_str = datetime.now().strftime("%Y%m%d%H%M")
     # Train the agent
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     model.save(tensorboard_log + "model")
 
     model = PPO.load(tensorboard_log + "model")
-    env = gym.make('CartPoleSwingUp-v0', render_mode="human")
+    env = gym.make(env_name, render_mode="human")
     while True:
         obs, info = env.reset()
         done = truncated = False
