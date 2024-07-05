@@ -14,6 +14,23 @@ import argparse
 # from CustomPPO import CustomPPO
 from datetime import datetime
 import Env
+import requests
+
+
+def send_line(message:str):
+    token = '7ZPjzeQrRcI70yDFnhBd4A6xpU8MddE7MntCSdbLBgC'
+    url = 'https://notify-api.line.me/api/notify'
+    headers = {
+        'Authorization': f'Bearer {token}'
+    }
+    data = {
+        'message':message
+    }
+    response = requests.post(url, headers=headers, data=data)
+    if response.status_code == 200:
+        print("LINE message send sucessfuly")
+    else:
+        print("LINE message send error：", response.status_code)
 
 if __name__ == "__main__":
     
@@ -22,7 +39,8 @@ if __name__ == "__main__":
     env_name = 'CartPoleSwingUpFixInitState-v0'
     #trained_env = GrayScale_env
     # trained_env = make_vec_env('CartPoleSwingUp-v0', n_envs=n_cpu, vec_env_cls=SubprocVecEnv, seed = 1)
-    trained_env = make_vec_env(env_name, n_envs=n_cpu, vec_env_cls=SubprocVecEnv, seed = 1)
+    # trained_env = make_vec_env(env_name, n_envs=n_cpu, vec_env_cls=SubprocVecEnv, seed = 1)
+    trained_env = make_vec_env(env_name, n_envs=n_cpu, vec_env_cls=SubprocVecEnv, env_kwargs = {"init_x": 2, "init_angle": np.pi/2})
     tensorboard_log = "./"
 
     #trained_env = make_vec_env(GrayScale_env, n_envs=n_cpu,)
@@ -36,22 +54,27 @@ if __name__ == "__main__":
                 learning_rate=5e-4,
                 gamma=0.8,
                 verbose=1,
-                target_kl=0.2,
-                ent_coef=0.,
-                vf_coef=1.5,
+                target_kl=0.1,
+                ent_coef=0.6,
+                vf_coef=0.8,
                 tensorboard_log=tensorboard_log,)
     time_str = datetime.now().strftime("%Y%m%d%H%M")
     # Train the agent
-    model.learn(total_timesteps=int(1e3), tb_log_name=time_str)
-    print("log name: ", tensorboard_log + time_str)
-    model.save(tensorboard_log + "model")
+    try:
+        model.learn(total_timesteps=int(1e6), tb_log_name=time_str)
+    except:
+        print("Training stop")
+    finally:
+        send_line("CartPoleSwingUp Test Done!!!!!")
+        print("log name: ", tensorboard_log + time_str)
+        model.save(tensorboard_log + "model")
 
-    model = PPO.load(tensorboard_log + "model")
-    env = gym.make(env_name, render_mode="human")
-    while True:
-        obs, info = env.reset()
-        done = truncated = False
-        while not (done or truncated):
-            action, _ = model.predict(obs)
-            obs, reward, done, truncated, info = env.step(action)
-            env.render()
+        model = PPO.load(tensorboard_log + "model")
+        env = gym.make(env_name, render_mode="human", init_x = 2, init_angle = np.pi/2)
+        while True:
+            obs, info = env.reset()
+            done = truncated = False
+            while not (done or truncated):
+                action, _ = model.predict(obs)
+                obs, reward, done, truncated, info = env.step(action)
+                env.render()
